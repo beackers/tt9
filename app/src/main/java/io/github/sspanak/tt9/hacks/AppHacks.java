@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import io.github.sspanak.tt9.commands.CmdMoveCursor;
-import io.github.sspanak.tt9.ime.helpers.CursorOps;
 import io.github.sspanak.tt9.ime.helpers.Key;
 import io.github.sspanak.tt9.ime.helpers.SuggestionOps;
 import io.github.sspanak.tt9.ime.helpers.TextField;
@@ -57,9 +56,11 @@ public class AppHacks {
 	 */
 	public boolean isBrutalForceShowNeeded() {
 		return
-			DeviceInfo.AT_LEAST_ANDROID_16
-			&& inputType != null
-			&& (inputType.isFirefoxText() || inputType.isGmailComposeMail());
+			inputType != null
+			&& (
+				(DeviceInfo.AT_LEAST_ANDROID_16 && inputType.isGmailComposeMail())
+				|| (DeviceInfo.AT_LEAST_ANDROID_14 && inputType.isFirefoxText())
+			);
 	}
 
 
@@ -73,10 +74,10 @@ public class AppHacks {
 		}
 
 		if (inputType.isWhatsApp() && Text.isGraphic(word)) {
-			textField.setComposingText("");
+			textField.replaceComposingText(word);
+		} else {
+			textField.setComposingText(word);
 		}
-
-		textField.setComposingText(word);
 	}
 
 
@@ -112,9 +113,11 @@ public class AppHacks {
 			return;
 		}
 
-		// if the composing text starts with an emoji, reset to empty before settings new composing text
+		// manually delete and set the composing text for WhatsApp, because it fails to do so with
+		// graphic characters
 		if (inputType.isWhatsApp() && Text.isGraphic(word.toString())) {
-			textField.setComposingText("");
+			textField.replaceComposingText(word.toString());
+			return;
 		}
 
 		// disable composing text for stupid search fields in eBay or Deezer, which restart the connection
@@ -196,26 +199,6 @@ public class AppHacks {
 
 
 	/**
-	 * Performs extra operations when the cursor moves and returns "true" if the selection was handled,
-	 * "false" otherwise.
-	 */
-	public boolean onUpdateSelection(
-		@NonNull InputMode inputMode,
-		@NonNull SuggestionOps suggestionOps,
-		int oldSelStart,
-		int oldSelEnd,
-		int newSelStart,
-		int newSelEnd,
-		int candidatesStart,
-		int candidatesEnd
-	) {
-		return
-			CursorOps.isInputReset(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
-			&& acceptComposingTextOnCursorReset(inputMode, suggestionOps, textField);
-	}
-
-
-	/**
 	 * onEnter
 	 * Tries to guess and send the correct confirmation key code or sequence of key codes,
 	 * depending on the connected application and input field. On invalid connection or field,
@@ -244,6 +227,17 @@ public class AppHacks {
 		return composingTextToRestartTime <= SettingsStore.COMPOSING_TEXT_RESTART_THRESHOLD;
 	}
 
+
+	/**
+	 * In most apps, input connection restarts is of no value to us, it just wastes resources, and
+	 * causes undesired suggestions and InputMode reset. Here, we list the apps, that actually, want
+	 * to reset the keyboard on connection restart.
+	 */
+	public boolean isRestartForbidden() {
+		return inputType == null || !inputType.isFirefoxUrl();
+	}
+
+
 	/**
 	 * When sending messages in Signal, Viber or Google SMS, using their own send button, these apps
 	 * clear the text field, but without notifying the keyboard. This results in the InputMode still
@@ -251,8 +245,8 @@ public class AppHacks {
 	 * word then causes the previous word to pop back up. We use this hack to detect such situations
 	 * and reset the InputMode upon sending a message.
 	 */
-	private boolean acceptComposingTextOnCursorReset(@NonNull InputMode inputMode, @NonNull SuggestionOps suggestionOps, @Nullable TextField textField) {
-		if (!isComposingCausingRestarts() && textField != null && textField.isEmpty() && !(inputMode.getSuggestions().isEmpty() && suggestionOps.isEmpty())) {
+	public boolean acceptComposingTextOnCursorReset(@NonNull InputMode inputMode, @NonNull SuggestionOps suggestionOps, @Nullable TextField textField) {
+		if (!isComposingCausingRestarts() && textField != null && textField.isEmpty() && !(inputMode.getSuggestions().isEmpty() && suggestionOps.containsNoOrdinaryWords())) {
 			inputMode.onAcceptSuggestion(suggestionOps.acceptIncomplete());
 			inputMode.reset();
 			return true;

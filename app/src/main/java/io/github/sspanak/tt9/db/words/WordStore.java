@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.CancellationSignal;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 
@@ -17,6 +18,7 @@ import io.github.sspanak.tt9.db.sqlite.DeleteOps;
 import io.github.sspanak.tt9.db.sqlite.InsertOps;
 import io.github.sspanak.tt9.db.sqlite.ReadOps;
 import io.github.sspanak.tt9.db.sqlite.UpdateOps;
+import io.github.sspanak.tt9.db.sqlite.WordDbOpener;
 import io.github.sspanak.tt9.languages.Language;
 import io.github.sspanak.tt9.languages.NullLanguage;
 import io.github.sspanak.tt9.preferences.settings.SettingsStore;
@@ -33,6 +35,13 @@ public class WordStore extends BaseSyncStore {
 	public WordStore(@NonNull Context context) {
 		super(context);
 		readOps = new ReadOps();
+	}
+
+
+	@NonNull
+	@Override
+	protected WordDbOpener openDb(Context context) {
+		return WordDbOpener.getInstance(context);
 	}
 
 
@@ -53,6 +62,20 @@ public class WordStore extends BaseSyncStore {
 		}
 
 		return loadedLanguages;
+	}
+
+
+	/**
+	 * Checks if the given word exists in the factory dictionary for the specified language
+	 * (case-insensitive).
+	 */
+	@Nullable
+	public String getWord(@NonNull Language language, @NonNull String word, @NonNull String sequence) {
+		if (checkOrNotify()) {
+			return readOps.getWord(sqlite.getDb(), language, word, sequence);
+		} else {
+			return null;
+		}
 	}
 
 
@@ -143,11 +166,11 @@ public class WordStore extends BaseSyncStore {
 		}
 
 		try {
-			if (readOps.exists(sqlite.getDb(), language, word)) {
+			final String sequence = language.getDigitSequenceForWord(word);
+
+			if (readOps.exists(sqlite.getDb(), language, word, sequence)) {
 				return new AddWordResult(AddWordResult.CODE_WORD_EXISTS, word);
 			}
-
-			String sequence = language.getDigitSequenceForWord(word);
 
 			if (InsertOps.insertCustomWord(sqlite.getDb(), language, sequence, word)) {
 				makeTopWord(language, word, sequence);

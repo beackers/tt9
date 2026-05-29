@@ -36,3 +36,6 @@ jobs:
       run: ./gradlew lint # this actually runs mergeResources, so it must come after the dictionary tasks
     - name: Build 'Lite' and 'Full' APK variants
       run: ./gradlew assembleLiteRelease assembleFullRelease
+    - name: Build debug APK variants
+      if: github.event_name == 'pull_request'
+      run: ./gradlew assembleLiteDebug assembleFullDebug

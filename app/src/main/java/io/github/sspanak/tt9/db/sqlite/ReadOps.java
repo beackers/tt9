@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDoneException;
 import android.database.sqlite.SQLiteStatement;
 import android.os.CancellationSignal;
 import android.os.OperationCanceledException;
+import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +14,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import io.github.sspanak.tt9.db.entities.CustomWord;
 import io.github.sspanak.tt9.db.entities.NormalizationList;
@@ -26,24 +28,15 @@ import io.github.sspanak.tt9.util.Logger;
 
 public class ReadOps {
 	private final String LOG_TAG = "ReadOperations";
+	private final ConcurrentHashMap<String, String> sqlCache = new ConcurrentHashMap<>();
 
 
 	/**
 	 * Checks if a word exists in the database for the given language (case-insensitive).
+	 * Sequence is used for faster lookup.
 	 */
-	public boolean exists(@NonNull SQLiteDatabase db, @NonNull Language language, @NonNull String word) {
-		String lowercaseWord = word.toLowerCase(language.getLocale());
-		String uppercaseWord = word.toUpperCase(language.getLocale());
-
-		SQLiteStatement query = CompiledQueryCache.get(db, "SELECT COUNT(*) FROM " + Tables.getWords(language.getId()) + " WHERE word IN(?, ?, ?)");
-		query.bindString(1, word);
-		query.bindString(2, lowercaseWord);
-		query.bindString(3, uppercaseWord);
-		try {
-			return query.simpleQueryForLong() > 0;
-		} catch (SQLiteDoneException e) {
-			return false;
-		}
+	public boolean exists(@NonNull SQLiteDatabase db, @NonNull Language language, @NonNull String word, @NonNull String sequence) {
+		return getWord(db, language, word, sequence) != null;
 	}
 
 
@@ -140,6 +133,39 @@ public class ReadOps {
 		}
 
 		return words;
+	}
+
+
+	/**
+	 * Searches case-insensitively for the given factory word in the database. If the word exists,
+	 * it is returned in the correct case. If not, null is returned. Sequence is used for faster lookup.
+	 */
+	@Nullable
+	public String getWord(@NonNull SQLiteDatabase db, @NonNull Language language, @NonNull String word, @NonNull String sequence) {
+		if (sequence.isEmpty() || word.isEmpty()) {
+			return null;
+		}
+
+		final String sql = sqlCache.computeIfAbsent(
+			"exists_fast_" + language.getId(),
+			k ->
+				"SELECT w.word" +
+				" FROM " + Tables.getWordPositions(language.getId()) + " AS wp" +
+				" JOIN " + Tables.getWords(language.getId()) + " AS w ON w.position >= wp.start AND w.position <= wp.`end`" +
+				" WHERE sequence = ? AND w.word IN(?,?,?)"
+		);
+
+		final SQLiteStatement query = CompiledQueryCache.get(db, sql);
+		query.bindString(1, sequence);
+		query.bindString(2, word);
+		query.bindString(3, word.toLowerCase(language.getLocale()));
+		query.bindString(4, word.toUpperCase(language.getLocale()));
+
+		try {
+			return query.simpleQueryForString();
+		} catch (SQLiteDoneException e) {
+			return null;
+		}
 	}
 
 
@@ -382,5 +408,31 @@ public class ReadOps {
 		}
 
 		return pairs;
+	}
+
+
+	@NonNull public SparseArray<String> getMindReaderTokens(@NonNull SQLiteDatabase db, int langId) {
+		SparseArray<String> tokens = new SparseArray<>();
+
+		try (Cursor cursor = db.query(Tables.getMindReaderTokens(langId), new String[]{"idx", "token"}, null, null, null, null, "idx")) {
+			while (cursor.moveToNext()) {
+				tokens.put(cursor.getInt(0), cursor.getString(1));
+			}
+		}
+
+		return tokens;
+	}
+
+
+	@NonNull public ArrayList<long[]> getMindReaderNgrams(@NonNull SQLiteDatabase db, int langId) {
+		ArrayList<long[]> ngrams = new ArrayList<>();
+
+		try (Cursor cursor = db.query(Tables.getMindReaderNgrams(langId), new String[]{ "idx", "before", "next" }, null, null, null, null, "idx")) {
+			while (cursor.moveToNext()) {
+				ngrams.add(new long[]{cursor.getLong(0), cursor.getLong(1), cursor.getLong(2)});
+			}
+		}
+
+		return ngrams;
 	}
 }

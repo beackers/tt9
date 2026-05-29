@@ -1,0 +1,44 @@
+name: Experimental Branch Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch to publish as a release (for example: experimental/my-feature)
+        required: true
+        type: string
+      tag:
+        description: Release tag to create (for example: exp-2026-02-14)
+        required: true
+        type: string
+      release_name:
+        description: Display name for the release
+        required: true
+        type: string
+      prerelease:
+        description: Mark as pre-release
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout selected branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.branch }}
+          fetch-depth: 0
+
+      - name: Create GitHub release with generated notes
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: ${{ inputs.release_name }}
+          target_commitish: ${{ inputs.branch }}
+          generate_release_notes: true
+          prerelease: ${{ inputs.prerelease }}
