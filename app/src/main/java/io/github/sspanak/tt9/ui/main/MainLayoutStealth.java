@@ -8,8 +8,6 @@ class MainLayoutStealth extends MainLayoutNumpad {
 	private boolean isTextEditingPaletteShown = false;
 	private boolean isDeveloperCommandsShown = false;
 
-	private boolean isDeveloperCommandsShown = false;
-
 	MainLayoutStealth(TraditionalT9 tt9) { super(tt9, R.layout.main_stealth); }
 
 	@Override void showCommandPalette() {
