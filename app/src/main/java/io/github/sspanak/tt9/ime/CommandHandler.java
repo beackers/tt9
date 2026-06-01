@@ -23,7 +23,7 @@ abstract public class CommandHandler extends TextEditingHandler {
 
 	@Override
 	protected Ternary onBack() {
-		if (hideDeveloperCommands() || cmdPalette.hideCommandPalette(getFinalContext()) {
+		if (hideDeveloperCommands() || cmdPalette.hideCommandPalette(getFinalContext())) {
 			return Ternary.TRUE;
 		}
 		return super.onBack();
