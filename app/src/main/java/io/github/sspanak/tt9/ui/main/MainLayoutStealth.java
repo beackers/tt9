@@ -38,6 +38,5 @@ class MainLayoutStealth extends MainLayoutNumpad {
 	@Override boolean isTextEditingPaletteShown() { return isTextEditingPaletteShown; }
 	@Override boolean isDeveloperCommandsShown() { return isDeveloperCommandsShown; }
 	@Override void setWidth(int w, int g) {}
-	@Override boolean isDeveloperCommandsShown() {return isDeveloperCommandsShown; }
 	@Override void render() {}
 }

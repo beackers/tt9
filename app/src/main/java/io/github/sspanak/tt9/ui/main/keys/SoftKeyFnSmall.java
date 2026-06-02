@@ -8,6 +8,9 @@ import android.util.AttributeSet;
 import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.widget.TextViewCompat;
 
+import io.github.sspanak.tt9.R;
+import io.github.sspanak.tt9.commands.CmdEditText;
+import io.github.sspanak.tt9.commands.CmdVoiceInput;
 import io.github.sspanak.tt9.commands.CommandCollection;
 
 public class SoftKeyFnSmall extends SoftKeyNumberNumpad {
@@ -19,14 +22,26 @@ public class SoftKeyFnSmall extends SoftKeyNumberNumpad {
 	@Override protected String getTitle() { return String.valueOf(getNumber()); }
 	@Override protected float getTitleScale() { return 1; }
 
+	private boolean isDeveloperCommands() {
+		return getId() == R.id.soft_key_7;
+	}
+
 	private boolean isNOOP() {
-		return !CommandCollection.getAll(CommandCollection.COLLECTION_PALETTE).containsKey(getId());
+		return !isDeveloperCommands() && !CommandCollection.getAll(CommandCollection.COLLECTION_PALETTE).containsKey(getId());
+	}
+
+	private boolean isVoiceInput() {
+		return CommandCollection.getBySoftKey(CommandCollection.COLLECTION_PALETTE, getId()) instanceof CmdVoiceInput;
+	}
+
+	private boolean isTextEditing() {
+		return CommandCollection.getBySoftKey(CommandCollection.COLLECTION_PALETTE, getId()) instanceof CmdEditText;
 	}
 
 	protected boolean isVisible() {
 		if (isNOOP()) {
 			return false;
-		} else if (getId() == R.id.soft_key_7) {
+		} else if (isDeveloperCommands()) {
 			return tt9 == null || tt9.isDeveloperCommandsEnabled();
 		} else if (isVoiceInput()) {
 			return tt9 == null || !tt9.isVoiceInputMissing();
@@ -39,11 +54,11 @@ public class SoftKeyFnSmall extends SoftKeyNumberNumpad {
 
 	@Override
 	protected String getAccessibilityText() {
-		return CommandCollection.getBySoftKey(CommandCollection.COLLECTION_PALETTE, getId()).getName(tt9);
+		return isDeveloperCommands() ? getContext().getString(R.string.pref_developer_commands) : CommandCollection.getBySoftKey(CommandCollection.COLLECTION_PALETTE, getId()).getName(tt9);
 	}
 
 	protected int getBottomIconId() {
-		return CommandCollection.getBySoftKey(CommandCollection.COLLECTION_PALETTE, getId()).getIcon();
+		return isDeveloperCommands() ? R.drawable.ic_dev_fn : CommandCollection.getBySoftKey(CommandCollection.COLLECTION_PALETTE, getId()).getIcon();
 	}
 
 	private void setBottomIcon() {

@@ -21,18 +21,28 @@ public class SoftKeyDeveloperSmall extends SoftKeyFnSmall {
 
 	@Override
 	protected String getTitle() {
-		return switch (getId()) {
-			case R.id.soft_key_1 -> "1\nCtrl";
-			case R.id.soft_key_2 -> "2\nAlt";
-			case R.id.soft_key_3 -> "3\nFn";
-			case R.id.soft_key_4 -> "4\nMeta";
-			case R.id.soft_key_5 -> "5\nShift";
-			case R.id.soft_key_6 -> "6\nCtrlL";
-			case R.id.soft_key_7 -> "7\nAltL";
-			case R.id.soft_key_8 -> "8\nClr";
-			case R.id.soft_key_9 -> "9\nCaps";
-			default -> super.getTitle();
-		};
+		int id = getId();
+		if (id == R.id.soft_key_1) {
+			return "1\nCtrl";
+		} else if (id == R.id.soft_key_2) {
+			return "2\nAlt";
+		} else if (id == R.id.soft_key_3) {
+			return "3\nFn";
+		} else if (id == R.id.soft_key_4) {
+			return "4\nMeta";
+		} else if (id == R.id.soft_key_5) {
+			return "5\nShift";
+		} else if (id == R.id.soft_key_6) {
+			return "6\nCtrlL";
+		} else if (id == R.id.soft_key_7) {
+			return "7\nAltL";
+		} else if (id == R.id.soft_key_8) {
+			return "8\nClr";
+		} else if (id == R.id.soft_key_9) {
+			return "9\nCaps";
+		}
+
+		return super.getTitle();
 	}
 
 	@Override
@@ -42,16 +52,24 @@ public class SoftKeyDeveloperSmall extends SoftKeyFnSmall {
 
 	@Override
 	protected int getBottomIconId() {
-		return switch (getId()) {
-			case R.id.soft_key_1, R.id.soft_key_6 -> R.drawable.ic_dev_ctrl;
-			case R.id.soft_key_2, R.id.soft_key_7 -> R.drawable.ic_dev_alt;
-			case R.id.soft_key_3 -> R.drawable.ic_dev_fn;
-			case R.id.soft_key_4 -> R.drawable.ic_dev_meta;
-			case R.id.soft_key_5 -> R.drawable.ic_fn_shift_up;
-			case R.id.soft_key_8 -> R.drawable.ic_txt_select_none;
-			case R.id.soft_key_9 -> R.drawable.ic_dev_caps;
-			default -> -1;
-		};
+		int id = getId();
+		if (id == R.id.soft_key_1 || id == R.id.soft_key_6) {
+			return R.drawable.ic_dev_ctrl;
+		} else if (id == R.id.soft_key_2 || id == R.id.soft_key_7) {
+			return R.drawable.ic_dev_alt;
+		} else if (id == R.id.soft_key_3) {
+			return R.drawable.ic_dev_fn;
+		} else if (id == R.id.soft_key_4) {
+			return R.drawable.ic_dev_meta;
+		} else if (id == R.id.soft_key_5) {
+			return R.drawable.ic_fn_shift_up;
+		} else if (id == R.id.soft_key_8) {
+			return R.drawable.ic_txt_select_none;
+		} else if (id == R.id.soft_key_9) {
+			return R.drawable.ic_dev_caps;
+		}
+
+		return -1;
 	}
 
 	@Override
