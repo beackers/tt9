@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import io.github.sspanak.tt9.R;
 import io.github.sspanak.tt9.ime.TraditionalT9;
+import io.github.sspanak.tt9.preferences.settings.SettingsStore;
 import io.github.sspanak.tt9.ui.main.keys.SoftKey;
 import io.github.sspanak.tt9.util.sys.DeviceInfo;
 
@@ -90,7 +91,7 @@ class MainLayoutTray extends MainLayoutExtraPanel {
 		togglePanel(R.id.main_command_keys, true);
 		togglePanel(R.id.developer_command_keys, false);
 		getHeight(true);
-		renderKeys();
+		renderKeys(false);
 	}
 
 	@Override
@@ -105,16 +106,6 @@ class MainLayoutTray extends MainLayoutExtraPanel {
 		renderKeys(false);
 	}
 
-	@Override
-	void showDeveloperCommands() {
-		super.showDeveloperCommands();
-		isCommandPaletteShown = false;
-		isTextEditingPaletteShown = false;
-		isDeveloperCommandsShown = true;
-		togglePanel(R.id.developer_command_keys, true);
-		getHeight(true);
-		renderKeys();
-	}
 
 
 	@Override

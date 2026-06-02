@@ -29,7 +29,12 @@ class MainLayoutNumpad extends MainLayoutClassic {
 
 
 	MainLayoutNumpad(TraditionalT9 tt9) {
-		super(tt9, R.layout.main_numpad);
+		this(tt9, R.layout.main_numpad);
+	}
+
+
+	MainLayoutNumpad(TraditionalT9 tt9, int layoutResId) {
+		super(tt9, layoutResId);
 	}
 
 

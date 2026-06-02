@@ -14,12 +14,13 @@ import io.github.sspanak.tt9.ime.modes.InputModeKind;
 import io.github.sspanak.tt9.languages.LanguageCollection;
 import io.github.sspanak.tt9.languages.NaturalLanguage;
 import io.github.sspanak.tt9.ui.UI;
+import io.github.sspanak.tt9.util.sys.Clipboard;
 import io.github.sspanak.tt9.util.Ternary;
 
 abstract public class CommandHandler extends TextEditingHandler {
 	private int developerMetaState = 0;
 	private boolean awaitingDeveloperComboKey = false;
-  private final CmdCommandPalette cmdPalette = new CmdCommandPalette();
+	private final CmdCommandPalette cmdPalette = new CmdCommandPalette();
 
 	@Override
 	protected Ternary onBack() {
@@ -46,6 +47,11 @@ abstract public class CommandHandler extends TextEditingHandler {
 		}
 
 		if (!shouldBeOff() && mainView.isCommandPaletteShown()) {
+			if (key == 7) {
+				showDeveloperCommands();
+				return true;
+			}
+
 			Command cmd = CommandCollection.getByHardKey(CommandCollection.COLLECTION_PALETTE, key);
 			if (cmd.isAvailable(getFinalContext())) {
 				cmd.run(getFinalContext());
@@ -68,36 +74,6 @@ abstract public class CommandHandler extends TextEditingHandler {
 
 		return super.onText(text, validateOnly);
 	}
-
-	private void onCommand(int key) {
-		switch (key) {
-			case 1:
-				showSettings();
-				break;
-			case 2:
-				addWord();
-				break;
-			case 3:
-				toggleVoiceInput();
-				break;
-			case 4:
-				undo();
-				break;
-			case 5:
-				showTextEditingPalette();
-				break;
-			case 6:
-				redo();
-				break;
-			case 7:
-				showDeveloperCommands();
-				break;
-			case 8:
-				selectKeyboard();
-				break;
-		}
-	}
-
 
 	private void onDeveloperCommand(int key) {
 		switch (key) {
@@ -130,7 +106,7 @@ abstract public class CommandHandler extends TextEditingHandler {
 				break;
 		}
 
-		mainView.renderKeys();
+		mainView.renderDynamicKeys();
 	}
 
 
@@ -428,7 +404,7 @@ abstract public class CommandHandler extends TextEditingHandler {
 
 	private void clearDeveloperModifiers() {
 		developerMetaState = 0;
-		mainView.renderKeys();
+		mainView.renderDynamicKeys();
 	}
 
 
@@ -441,26 +417,4 @@ abstract public class CommandHandler extends TextEditingHandler {
 		return textField.sendDownUpKeyEvents(KeyEvent.KEYCODE_Z, true, true);
 	}
 
-	public void showDeveloperCommands() {
-		if (mainView.isDeveloperCommandsShown()) {
-			return;
-		}
-		suggestionOps.cancelDelayedAccept();
-		mInputMode.onAcceptSuggestion(suggestionOps.acceptIncomplete());
-		mInputMode.reset();
-		mainView.showDeveloperCommands();
-		resetStatus();
-	}
-	
-	public boolean hideDeveloperCommands() {
-		if (!mainView.isDeveloperCommandsShown()) {
-			return false;
-		}
-		mainView.showKeyboard();
-		if (voiceInputOps.isListening()) {
-			stopVoiceInput();
-		} else {
-			resetStatus();
-		}
-	}
 }

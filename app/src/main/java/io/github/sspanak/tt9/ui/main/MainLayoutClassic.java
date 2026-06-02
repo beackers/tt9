@@ -37,7 +37,9 @@ public class MainLayoutClassic extends MainLayoutExtraPanel {
 
 
 	@Override void showCommandPalette() {}
+	@Override void showDeveloperCommands() {}
 	@Override boolean isCommandPaletteShown() { return false; }
+	@Override boolean isDeveloperCommandsShown() { return false; }
 
 
 	@Override
