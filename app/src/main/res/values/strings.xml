@@ -364,4 +364,9 @@
 	<string name="voice_input_error_network_failed">Network connection failed</string>
 	<string name="voice_input_error_no_network">No Internet connection</string>
 	<string name="voice_input_error_not_available">Voice input is not available</string>
+
+	<string name="developer_commands">Developer Commands</string>
+	<string name="dev_command_ctrl">Ctrl</string>
+	<string name="dev_command_alt">Alt</string>
+	<string name="dev_command_fn">Fn</string>
 </resources>
