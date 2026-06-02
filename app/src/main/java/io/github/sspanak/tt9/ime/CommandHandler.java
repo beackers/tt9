@@ -182,7 +182,7 @@ abstract public class CommandHandler extends TextEditingHandler {
 		}
 
 		if (mainView.isTextEditingPaletteShown()) {
-			String preview = Clipboard.getPreview(this);
+			String preview = Clipboard.getLastPreview();
 			statusBar.setText(preview.isEmpty() ? getString(R.string.commands_select_command) : "[ \"" + preview + "\" ]");
 			return;
 		}
